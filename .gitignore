@@ -1,0 +1,52 @@
+# ===== Secrets: never commit (rule 1) =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+kubeconfig*
+*.tfvars
+!*.tfvars.example
+
+# ===== Data and models: too big for git =====
+data/raw/
+data/processed/
+*.h5
+*.h5.orig
+*.parquet
+*.pt
+*.pth
+*.ckpt
+mlruns/
+mlartifacts/
+
+# ===== NASA reference files (link to them in the README instead) =====
+docs/reference/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ===== Notebooks =====
+.ipynb_checkpoints/
+
+# ===== Terraform state (can contain secrets) =====
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# ===== Editors / OS =====
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
