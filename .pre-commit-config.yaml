@@ -1,0 +1,40 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [ "--maxkb=1000" ]
+      - id: check-toml
+      - id: check-yaml
+      - id: check-merge-conflict
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks-system
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: personal-email
+        name: commit email is personal
+        entry: uv run python scripts/check_git_email.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: ruff-check
+        name: ruff check (report only)
+        entry: uv run ruff check
+        language: system
+        types: [ python ]
+      - id: ruff-format
+        name: ruff format (layout only)
+        entry: uv run ruff format
+        language: system
+        types: [ python ]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        types: [ python ]
