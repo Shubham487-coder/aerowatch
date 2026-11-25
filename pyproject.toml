@@ -1,5 +1,5 @@
 [project]
-name = "predictiq"
+name = "aerowatch"
 version = "0.1.0"
 description = "Self-healing remaining-useful-life prediction for turbofan engines (NASA N-CMAPSS)."
 readme = "README.md"
@@ -29,7 +29,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/predictiq"]
+packages = ["src/aerowatch"]
 [tool.uv]
 default-groups = ["dev", "explore"]   # plain `uv sync` installs both groups
 # ---------- ruff: linter + formatter ----------
@@ -39,13 +39,13 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = [
-    "E", "W",  # basic style errors
-    "F",       # real bugs: unused imports, undefined names
-    "I",       # import order
-    "B",       # common bug patterns
-    "UP",      # use modern Python syntax
-    "SIM",     # needlessly complicated code
-    "S",       # security checks, e.g. hard-coded passwords
+    "E", "W", # basic style errors
+    "F", # real bugs: unused imports, undefined names
+    "I", # import order
+    "B", # common bug patterns
+    "UP", # use modern Python syntax
+    "SIM", # needlessly complicated code
+    "S", # security checks, e.g. hard-coded passwords
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -64,7 +64,7 @@ testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 
 [tool.coverage.run]
-source = ["predictiq"]
+source = ["aerowatch"]
 branch = true
 
 [tool.coverage.report]
