@@ -33,13 +33,18 @@ for path in sorted(RAW.glob("*.h5")):
     file_id = path.stem.replace("N-CMAPSS_", "")
     with h5py.File(path, "r") as f:
         # ---- Layer 1: inventory ----
-        for key in f.keys():
+        for key in f:
             ds = f[key]
-            inventory.append({
-                "file": file_id, "array": key, "rows": ds.shape[0],
-                "cols": ds.shape[1] if ds.ndim > 1 else 1, "dtype": str(ds.dtype),
-                "size_mb": round(ds.size * ds.dtype.itemsize / 1e6, 1),
-            })
+            inventory.append(
+                {
+                    "file": file_id,
+                    "array": key,
+                    "rows": ds.shape[0],
+                    "cols": ds.shape[1] if ds.ndim > 1 else 1,
+                    "dtype": str(ds.dtype),
+                    "size_mb": round(ds.size * ds.dtype.itemsize / 1e6, 1),
+                }
+            )
 
         a_cols = names(f, "A_var")
         var_cols = {g: names(f, f"{g}_var") for g in GROUPS}
@@ -61,7 +66,9 @@ for path in sorted(RAW.glob("*.h5")):
                 blocks = {g: f[f"{g}_{split}"][start:end] for g in GROUPS}
                 rul = f[f"Y_{split}"][start:end].ravel()
                 for g, b in blocks.items():
-                    nan_counts[(file_id, split, g)] = nan_counts.get((file_id, split, g), 0) + int(np.isnan(b).sum())
+                    nan_counts[(file_id, split, g)] = nan_counts.get((file_id, split, g), 0) + int(
+                        np.isnan(b).sum()
+                    )
 
                 df = pd.DataFrame(np.hstack([blocks[g] for g in GROUPS]), columns=all_vars)
                 df[a_cols] = A[start:end]
@@ -69,7 +76,9 @@ for path in sorted(RAW.glob("*.h5")):
 
                 # ---- checks ----
                 assert df["Fc"].nunique() == 1, f"{file_id} unit {unit}: flight class changes"
-                assert (df.groupby("cycle")["RUL"].nunique() == 1).all(), f"{file_id} unit {unit}: RUL changes inside a flight"
+                assert (df.groupby("cycle")["RUL"].nunique() == 1).all(), (
+                    f"{file_id} unit {unit}: RUL changes inside a flight"
+                )
 
                 # ---- Layer 3: one row per flight ----
                 g = df.groupby("cycle")
@@ -88,16 +97,22 @@ for path in sorted(RAW.glob("*.h5")):
                 # ---- Layer 2: one row per engine ----
                 last = int(fl["cycle"].max())
                 fault = fl.loc[fl["hs"] == 0, "cycle"]
-                units.append({
-                    "file": file_id, "split": split, "unit": int(unit),
-                    "flight_class": int(df["Fc"].iloc[0]),
-                    "n_flights": len(fl),
-                    "first_cycle": int(fl["cycle"].min()), "last_cycle": last,
-                    "avg_flight_min": round(fl["duration_s"].mean() / 60, 1),
-                    "fault_starts_at": int(fault.min()) if len(fault) else None,
-                    "rul_first": int(fl["RUL"].iloc[0]), "rul_last": int(fl["RUL"].iloc[-1]),
-                    "rul_is_countdown": bool((fl["RUL"] == last - fl["cycle"]).all()),
-                })
+                units.append(
+                    {
+                        "file": file_id,
+                        "split": split,
+                        "unit": int(unit),
+                        "flight_class": int(df["Fc"].iloc[0]),
+                        "n_flights": len(fl),
+                        "first_cycle": int(fl["cycle"].min()),
+                        "last_cycle": last,
+                        "avg_flight_min": round(fl["duration_s"].mean() / 60, 1),
+                        "fault_starts_at": int(fault.min()) if len(fault) else None,
+                        "rul_first": int(fl["RUL"].iloc[0]),
+                        "rul_last": int(fl["RUL"].iloc[-1]),
+                        "rul_is_countdown": bool((fl["RUL"] == last - fl["cycle"]).all()),
+                    }
+                )
     print(f"done {file_id:10s} in {time.time() - t0:5.1f} s")
 
 # ---- save ----
@@ -114,7 +129,14 @@ flights_df.to_parquet(PROC / "flights.parquet", index=False)
 print("\nColumn names identical in all files: yes")
 print("Total raw size (GB):", round(inv["size_mb"].sum() / 1000, 1))
 print("Missing values (NaN) in total:", sum(nan_counts.values()))
-print("Engines:", len(units_df), "| Flights:", len(flights_df), "| Flight table columns:", flights_df.shape[1])
+print(
+    "Engines:",
+    len(units_df),
+    "| Flights:",
+    len(flights_df),
+    "| Flight table columns:",
+    flights_df.shape[1],
+)
 print("RUL is a clean countdown for every engine:", units_df["rul_is_countdown"].all())
 print("\nEngines per flight class (1=short, 2=medium, 3=long):")
 print(pd.crosstab(units_df["flight_class"], units_df["split"], margins=True))

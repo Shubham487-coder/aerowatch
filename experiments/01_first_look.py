@@ -13,13 +13,15 @@ UNIT = 1  # which engine to look at
 
 def column_names(f: h5py.File, key: str) -> list[str]:
     """The *_var arrays store column names as bytes; turn them into normal strings."""
-    return [x.decode().strip() if isinstance(x, bytes) else str(x) for x in np.array(f[key]).ravel()]
+    return [
+        x.decode().strip() if isinstance(x, bytes) else str(x) for x in np.array(f[key]).ravel()
+    ]
 
 
 with h5py.File(DATA_FILE, "r") as f:
     # 1. What is inside the file (shapes only, nothing loaded yet)
     print("Arrays in the file:")
-    for key in f.keys():
+    for key in f:
         print(f"  {key:10s} {str(f[key].shape):18s} {f[key].dtype}")
 
     a_cols = column_names(f, "A_var")
@@ -38,7 +40,9 @@ with h5py.File(DATA_FILE, "r") as f:
 
     # 3. Read only that slice and build one table
     df = pd.DataFrame(
-        np.hstack([A[start:end], f["W_dev"][start:end], f["X_s_dev"][start:end], f["Y_dev"][start:end]]),
+        np.hstack(
+            [A[start:end], f["W_dev"][start:end], f["X_s_dev"][start:end], f["Y_dev"][start:end]]
+        ),
         columns=a_cols + w_cols + xs_cols + ["RUL"],
     )
 
